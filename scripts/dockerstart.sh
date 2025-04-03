@@ -2,7 +2,7 @@
 set -e
 cd "$(dirname "$0")/.."
 
-echo "🚀 Building Docker image for local testing ..."
+echo "🚀 Building and starting Docker image for local testing ..."
 
 docker rmi -f oauth2-server:dev || true
 
