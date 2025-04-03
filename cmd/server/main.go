@@ -1,7 +1,21 @@
 package main
 
-import "fmt"
+import (
+	"log"
+	"net/http"
+
+	"github.com/memak/oauth2-server/internal/handlers"
+
+	"github.com/gorilla/mux"
+)
 
 func main() {
-	fmt.Println("Hello OAuth2 Server!")
+	r := mux.NewRouter()
+
+	r.HandleFunc("/token", handlers.TokenHandler).Methods("POST")
+	r.HandleFunc("/jwks", handlers.JWKSHandler).Methods("GET")
+	r.HandleFunc("/introspect", handlers.IntrospectHandler).Methods("POST")
+
+	log.Println("Starting OAuth2 server on :8080...")
+	log.Fatal(http.ListenAndServe(":8080", r))
 }
