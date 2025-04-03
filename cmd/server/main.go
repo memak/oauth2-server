@@ -16,6 +16,6 @@ func main() {
 	r.HandleFunc("/jwks", handlers.JWKSHandler).Methods("GET")
 	r.HandleFunc("/introspect", handlers.IntrospectHandler).Methods("POST")
 
-	log.Println("Starting OAuth2 server on :8080...")
+	log.Println("Started OAuth2 server on :8080...")
 	log.Fatal(http.ListenAndServe(":8080", r))
 }

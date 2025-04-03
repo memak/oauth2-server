@@ -11,9 +11,16 @@ import (
 var privateKey *rsa.PrivateKey
 var publicKey *rsa.PublicKey
 
+func getEnv(key, fallback string) string {
+	if val := os.Getenv(key); val != "" {
+		return val
+	}
+	return fallback
+}
+
 func init() {
-	privKeyData, _ := os.ReadFile("keys/private.pem")
-	pubKeyData, _ := os.ReadFile("keys/public.pem")
+	privKeyData, _ := os.ReadFile(getEnv("PRIVATE_KEY_PATH", "keys/private.pem"))
+	pubKeyData, _ := os.ReadFile(getEnv("PUBLIC_KEY_PATH", "keys/public.pem"))
 	privateKey, _ = jwt.ParseRSAPrivateKeyFromPEM(privKeyData)
 	publicKey, _ = jwt.ParseRSAPublicKeyFromPEM(pubKeyData)
 }
