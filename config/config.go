@@ -1,10 +1,10 @@
 package config
 
 import (
-	"log"
 	"strings"
 
 	"github.com/joho/godotenv"
+	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
 )
 
@@ -21,7 +21,7 @@ func init() {
 	// Only read YAML config if file exists
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			log.Println("values.yaml not found, continuing without it.")
+			log.Info("values.yaml not found, continuing without it.")
 		} else {
 			log.Fatalf("Failed to read config: %v", err)
 		}

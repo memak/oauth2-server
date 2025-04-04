@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"sync"
 
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/time/rate"
 )
 
@@ -35,6 +36,9 @@ func (rl *RateLimiter) GetLimiter(clientID string) *rate.Limiter {
 
 	limiter := rate.NewLimiter(rl.rate, rl.burst)
 	rl.limiters[clientID] = limiter
+	log.WithFields(log.Fields{
+		"clientID": clientID,
+	}).Info("Created new rate limiter")
 	return limiter
 }
 
@@ -45,10 +49,16 @@ func (rl *RateLimiter) RateLimitMiddleware(next http.Handler) http.Handler {
 		limiter := rl.GetLimiter(clientID)
 
 		if !limiter.Allow() {
+			log.WithFields(log.Fields{
+				"clientID": clientID,
+			}).Warn("Rate limit exceeded")
 			http.Error(w, "Too Many Requests", http.StatusTooManyRequests)
 			return
 		}
 
+		log.WithFields(log.Fields{
+			"clientID": clientID,
+		}).Info("Request allowed")
 		next.ServeHTTP(w, r)
 	})
 }
