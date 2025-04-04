@@ -1,0 +1,24 @@
+replicaCount: 1
+
+image:
+  repository: oauth2-server
+  tag: dev
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+
+server:
+  port: 8080
+
+jwt:
+  token_ttl: 3600
+
+paths:
+  private_key: "/app/keys/private.pem"
+  public_key: "/app/keys/public.pem"
+
+volume:
+  mountPath: "/app/keys"
+  secretName: oauth2-keys

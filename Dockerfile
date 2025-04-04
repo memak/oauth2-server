@@ -1,5 +1,10 @@
-# 1. Build stage: Compile the Go program
+# -----------------------------------
+# 1. Build Stage: Compile the Go app
+# -----------------------------------
 ARG GO_VERSION=1.24.1
+ARG CONTAINER_PORT=8080
+ARG MOUNT_PATH=/app/keys
+
 FROM golang:${GO_VERSION}-alpine AS builder
 
 # Install required tools (e.g., certificates, Git)
@@ -16,8 +21,13 @@ RUN go mod download
 COPY . .
 RUN go build -o oauth2-server ./cmd/server
 
-# 2. Runtime stage: Minimal container
+# ----------------------------------------
+# 2. Runtime Stage: Create a minimal image
+# ----------------------------------------
 FROM alpine:latest
+
+ARG CONTAINER_PORT
+ARG MOUNT_PATH
 
 # Install CA certificates if TLS is used (e.g., for JWKS over HTTPS)
 RUN apk add --no-cache ca-certificates
@@ -26,9 +36,9 @@ RUN apk add --no-cache ca-certificates
 COPY --from=builder /app/oauth2-server /oauth2-server
 
 # Runtime expects /app/keys – will be mounted
-VOLUME ["/app/keys"]
+VOLUME ["${MOUNT_PATH}"]
 
-EXPOSE 8080
+EXPOSE ${CONTAINER_PORT}
 
 # Define entrypoint
 ENTRYPOINT ["/oauth2-server"]

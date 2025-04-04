@@ -8,6 +8,7 @@ import (
 
 	"github.com/memak/oauth2-server/internal/auth"
 	"github.com/memak/oauth2-server/internal/storage"
+	"github.com/spf13/viper"
 )
 
 type tokenResponse struct {
@@ -17,6 +18,7 @@ type tokenResponse struct {
 }
 
 func TokenHandler(w http.ResponseWriter, r *http.Request) {
+	expiresIn := viper.GetInt("jwt.token_ttl")
 	header := r.Header.Get("Authorization")
 	if !strings.HasPrefix(header, "Basic ") {
 		http.Error(w, "Invalid auth header", http.StatusUnauthorized)
@@ -36,7 +38,7 @@ func TokenHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resp := tokenResponse{AccessToken: token, TokenType: "bearer", ExpiresIn: 3600}
+	resp := tokenResponse{AccessToken: token, TokenType: "bearer", ExpiresIn: expiresIn}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(resp)
 }

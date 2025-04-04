@@ -1,5 +1,6 @@
 keys/
 .git
+.env
 *.pem
 *.b64
 *.log

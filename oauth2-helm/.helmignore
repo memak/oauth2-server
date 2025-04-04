@@ -1,0 +1,10 @@
+.git/
+.env
+.idea/
+.vscode/
+.DS_Store
+_.swp
+_.tmp
+_.bak
+_.orig
+\*~
