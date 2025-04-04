@@ -24,3 +24,5 @@ docker run --rm --name "$CONTAINER_NAME" \
   -e SERVER_PORT=8080 \
   -e JWT_TOKEN_TTL=3600 \
   "$IMAGE_NAME"
+
+echo "✅ The server is now running on at http://localhost:8080"

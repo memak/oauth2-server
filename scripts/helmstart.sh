@@ -13,15 +13,23 @@ helm uninstall $RELEASE_NAME || true
 kubectl delete deployment $RELEASE_NAME -n $NAMESPACE --ignore-not-found
 kubectl delete service $RELEASE_NAME -n $NAMESPACE --ignore-not-found
 
+if ! kubectl get secret oauth2-keys -n $NAMESPACE > /dev/null 2>&1; then
+  echo "🔑 Creating secret oauth2-keys..."
+  kubectl create secret generic oauth2-keys \
+    --from-file=private.pem=keys/private.pem \
+    --from-file=public.pem=keys/public.pem
+else
+  echo "🔑 Secret oauth2-keys already exists. Skipping creation."
+fi
+
 echo "🚀 Installing Helm release..."
 helm install $RELEASE_NAME $CHART_PATH
 
-echo "⏳ Waiting for pod to be ready..."
-if kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=$RELEASE_NAME -n $NAMESPACE --timeout=20s; then
+echo "⏳ Waiting up to 10s for pod to be ready..."
+if kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=$RELEASE_NAME -n $NAMESPACE --timeout=10s; then
   echo "✅ Pod is ready!"
 else
-  echo "⚠️  Pod not ready in time. You can check with: kubectl get pods"
-  exit 1
+  echo "⚠️ Pod not ready in time."
 fi
 
 echo "🌐 Port forwarding service $RELEASE_NAME on http://localhost:$PORT_LOCAL"

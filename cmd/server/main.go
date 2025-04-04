@@ -6,6 +6,7 @@ import (
 
 	_ "github.com/memak/oauth2-server/config"
 	"github.com/memak/oauth2-server/internal/handlers"
+	"github.com/memak/oauth2-server/internal/middleware"
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/viper"
@@ -14,6 +15,12 @@ import (
 func main() {
 	r := mux.NewRouter()
 	port := viper.GetString("server.port")
+
+	// Create a rate limiter (e.g., 5 requests per second with a burst of 10)
+    rateLimiter := middleware.NewRateLimiter(5, 10)
+
+    // Apply the rate limiting middleware
+    r.Use(rateLimiter.RateLimitMiddleware)
 
 	r.HandleFunc("/token", handlers.TokenHandler).Methods("POST")
 	r.HandleFunc("/jwks", handlers.JWKSHandler).Methods("GET")

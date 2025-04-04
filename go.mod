@@ -8,6 +8,7 @@ require (
 	github.com/joho/godotenv v1.5.1
 	github.com/lestrrat-go/jwx/v2 v2.1.4
 	github.com/spf13/viper v1.20.1
+	golang.org/x/time v0.8.0
 )
 
 require (
