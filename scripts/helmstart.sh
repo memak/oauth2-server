@@ -3,6 +3,7 @@
 set -euo pipefail  # Stop the script on any error
 
 RELEASE_NAME=oauth2-server
+IMAGE_NAME=${RELEASE_NAME}:dev
 CHART_PATH=./oauth2-helm
 NAMESPACE=default
 PORT_LOCAL=8080
@@ -12,6 +13,10 @@ echo "🔄 Cleaning up previous deployment (if any)..."
 helm uninstall $RELEASE_NAME || true
 kubectl delete deployment $RELEASE_NAME -n $NAMESPACE --ignore-not-found
 kubectl delete service $RELEASE_NAME -n $NAMESPACE --ignore-not-found
+
+echo "🚀 Building Docker image: $IMAGE_NAME"
+docker rmi -f "$IMAGE_NAME" > /dev/null 2>&1 || true
+docker build -t "$IMAGE_NAME" .
 
 if ! kubectl get secret oauth2-keys -n $NAMESPACE > /dev/null 2>&1; then
   echo "🔑 Creating secret oauth2-keys..."

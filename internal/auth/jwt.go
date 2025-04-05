@@ -2,7 +2,11 @@ package auth
 
 import (
 	"crypto/rsa"
+	"crypto/sha256"
+	"crypto/x509"
+	"encoding/base64"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -13,6 +17,7 @@ import (
 
 var privateKey *rsa.PrivateKey
 var publicKey *rsa.PublicKey
+var keyID string
 
 func init() {
 	privKeyData, err := os.ReadFile(viper.GetString("paths.private_key"))
@@ -31,21 +36,37 @@ func init() {
 	if err != nil {
 		log.Fatalf("Failed to parse public key: %v", err)
 	}
+	keyID = computeKeyID(publicKey)
 }
 
 func PublicKey() *rsa.PublicKey {
 	return publicKey
 }
 
-func GenerateJWT(clientID string) (string, error) {
+func GetKeyID() string {
+	return keyID
+}
+
+func computeKeyID(pub *rsa.PublicKey) string {
+	pubBytes := x509.MarshalPKCS1PublicKey(pub)
+	hash := sha256.Sum256(pubBytes)
+	return base64.RawURLEncoding.EncodeToString(hash[:])
+}
+
+func GenerateJWT(clientID string, scopes []string) (string, error) {
 	ttl := viper.GetInt("jwt.token_ttl")
 
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
-		"iss": "oauth2-server",
-		"sub": clientID,
-		"aud": "api",
-		"exp": time.Now().Add(time.Duration(ttl) * time.Second).Unix(),
+		"iss":   "oauth2-server",
+		"sub":   clientID,
+		"aud":   "api",
+		"exp":   time.Now().Add(time.Duration(ttl) * time.Second).Unix(),
+		"scope": strings.Join(scopes, " "),
 	})
+
+	// Add the "kid" to the header
+	token.Header["kid"] = GetKeyID()
+
 	signedToken, err := token.SignedString(privateKey)
 	if err != nil {
 		log.Errorf("Failed to sign token: %v", err)
@@ -53,6 +74,7 @@ func GenerateJWT(clientID string) (string, error) {
 	}
 	return signedToken, nil
 }
+
 
 func ValidateJWT(tokenStr string) (*jwt.Token, error) {
 	token, err := jwt.Parse(tokenStr, func(token *jwt.Token) (interface{}, error) {

@@ -22,3 +22,8 @@ paths:
 volume:
   mountPath: "/app/keys"
   secretName: oauth2-keys
+
+api:
+  token: "/token"
+  jwks: "/jwks"
+  introspect: "/introspect"

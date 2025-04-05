@@ -11,7 +11,7 @@ import (
 func init() {
 	viper.SetConfigName("values")
 	viper.SetConfigType("yaml")
-	viper.AddConfigPath("./oauth2-helm") // Ensure this path is correct
+	viper.AddConfigPath("./oauth2-helm")
 
 	// allow ENV vars to override
 	_ = godotenv.Load()

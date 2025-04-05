@@ -11,6 +11,15 @@
 ## Important notes
 Usually private/public keys would not be saved in the repo. This is only done here as an example. The keys are mounted to the Docker image during runtime and as a mounted secret in Kubernetes cluster as it would be done in production
 
+No real database with client ids and secrets was used. A map of example client ids and secrets is saved in the directory /internal/storage/memory.go
+
+## To-do items for a complete app
+- Implement CI/CD to build docker images and k8s pods automatically
+- Load client credentials from DB
+- Unit tests for testing the APIs. Rate limit testing, etc.
+- Save error messages in a central file
+- Add support for managing multiple keys and multiple kid handling
+
 ## Usage
 Either start a local Go server manually, or start a local Docker server, or start a local Kubernetes cluster including the Docker image with the following commands. After starting the server you can use the provided `curl` commands below
 
@@ -34,21 +43,23 @@ Creates a secret for the keys and starts the kubernetes cluster. If you use `kin
 After starting the server you can use the following APIs
 
 ### Get Token
+Scope parameter is optional
 ```sh
-curl -u client_id:secret -X POST http://localhost:8080/token -d 'grant_type=client_credentials'
+curl -u client_id:secret -X POST http://localhost:8080/token -d 'grant_type=client_credentials' -d 'scope=write:orders' | jq
 ```
 
 ### Get JWKS
 ```sh
-curl http://localhost:8080/jwks
+curl http://localhost:8080/jwks | jq
 ```
 
 ### Introspect Token
 ```sh
-curl -X POST http://localhost:8080/introspect -d 'token=ey...'
+curl -X POST http://localhost:8080/introspect -d 'token=ey...' | jq
 ```
 
 ### Token expiration
 If you want to test token expiration, you can change the token ttl value in .env for the local server, and in dockerstart.sh for the Docker image or in values.yaml for Kubernetes cluster
 
 ---
+echo 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhcGkiLCJleHAiOjE3NDM4NjEwNTAsImlzcyI6Im9hdXRoMi1zZXJ2ZXIiLCJzY29wZSI6InJlYWQ6cHJvZHVjdHMiLCJzdWIiOiJjbGllbnRfaWQifQ.KTtsvngCzqbfEBbm05QUQj4iyxlvwwAsgjt-IXs4CcV2HeS2zz4b2p_KMYol3iJfHvYk3yk93bDTlZITEhI9iceywmYcIY8Jj9OWvoNrS33ry1-d59GULVtd8Fn-asY9Kc0RFGKDiOqsedPgH5_by4nkIVylmHQzqwM4RyqWbU2hi5L3eXumtC_c0MOCcU2g-4nA3dpa4ktKQ8msaXWQ1hllLjJGYaZG1TdtyH2FLtFt5ehRl_VKJTm9L0n9tbxPpfa2xRq35f45srYnscbfp6xsMm2GQ4ELVGIawWAG5GzU3eWJY4y0eo3Muv7icDrOiYcmY0S62UHEKBZdv2gBTQ' | cut -d '.' -f1 | base64 -d

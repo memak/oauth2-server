@@ -17,7 +17,7 @@ func JWKSHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = key.Set(jwk.KeyIDKey, "default")
+	err = key.Set(jwk.KeyIDKey, auth.GetKeyID())
 	if err != nil {
 		log.Errorf("failed to set key ID: %v", err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)

@@ -4,16 +4,19 @@ import (
 	"encoding/json"
 	"net/http"
 
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/memak/oauth2-server/internal/auth"
 	log "github.com/sirupsen/logrus"
 )
 
-type introspectResponse struct {
-	Active bool `json:"active"`
-}
-
 func IntrospectHandler(w http.ResponseWriter, r *http.Request) {
-	r.ParseForm()
+	err := r.ParseForm()
+	if err != nil {
+		log.WithError(err).Error("Failed to parse form")
+		http.Error(w, "Invalid request", http.StatusBadRequest)
+		return
+	}
+
 	token := r.FormValue("token")
 	if token == "" {
 		log.Warn("Missing token in request")
@@ -21,14 +24,35 @@ func IntrospectHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.WithField("token", token).Info("Validating token")
 	parsedToken, err := auth.ValidateJWT(token)
+	active := err == nil && parsedToken.Valid
+
 	if err != nil {
-		log.Errorf("Failed to validate token: %v", err)
+		log.WithError(err).Warn("Token validation failed")
+	} 
+
+	resp := map[string]interface{}{
+		"active": active,
 	}
 
-	resp := introspectResponse{Active: err == nil && parsedToken.Valid}
+	if active {
+		claims := parsedToken.Claims.(jwt.MapClaims)
+		resp["sub"] = claims["sub"]
+		resp["exp"] = claims["exp"]
+		resp["client_id"] = claims["sub"]
+		resp["token_type"] = "access_token"
+
+		if scope, ok := claims["scope"]; ok {
+			resp["scope"] = scope
+		}
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(resp); err != nil {
-		log.Errorf("Failed to encode response: %v", err)
+	err = json.NewEncoder(w).Encode(resp)
+	if err != nil {
+		log.WithError(err).Error("Failed to encode response")
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
 	}
 }

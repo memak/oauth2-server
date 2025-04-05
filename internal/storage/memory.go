@@ -1,21 +1,45 @@
 package storage
 
-import log "github.com/sirupsen/logrus"
+import "slices"
 
-var clients = map[string]string{
-	"client_id": "secret",
+type Client struct {
+	Secret string
+	Scopes []string
+	DefaultScopes []string
+}
+
+var clients = map[string]Client{
+	"client_id": {
+		Secret: "secret",
+		Scopes: []string{"read:products", "write:orders"},
+		DefaultScopes: []string{"read:products"},
+	},
+	"readonly_client": {
+		Secret: "readonly",
+		Scopes: []string{"read:products"},
+		DefaultScopes: []string{"read:products"},
+	},
 }
 
 func ValidateClient(clientID, secret string) bool {
-	storedSecret, ok := clients[clientID]
+	client, ok := clients[clientID]
+	return ok && client.Secret == secret
+}
+
+func ValidateScopes(clientID string, requestedScopes []string) bool {
+	client, ok := clients[clientID]
 	if !ok {
-		log.Warnf("Client ID %s not found", clientID)
 		return false
 	}
-	if storedSecret != secret {
-		log.Warnf("Invalid secret for client ID %s", clientID)
-		return false
+	for _, requested := range requestedScopes {
+		if !slices.Contains(client.Scopes, requested) {
+			return false
+		}
 	}
-	log.Infof("Client ID %s validated successfully", clientID)
 	return true
+}
+
+func GetClient(clientID string) (Client, bool) {
+	client, ok := clients[clientID]
+	return client, ok
 }
