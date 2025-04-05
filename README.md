@@ -17,7 +17,7 @@ No real database with client ids and secrets was used. A map of example client i
 - Implement CI/CD to build docker images and k8s pods automatically
 - Load client credentials from DB
 - Unit tests for testing the APIs. Rate limit testing, etc.
-- Save error messages in a central file
+- Save error messages in a central file, improve logging
 - Add support for managing multiple keys and multiple kid handling
 
 ## Usage
@@ -50,7 +50,7 @@ curl -u client_id:secret -X POST http://localhost:8080/token -d 'grant_type=clie
 
 ### Get JWKS
 ```sh
-curl http://localhost:8080/jwks | jq
+curl http://localhost:8080/.well-known/jwks.json | jq
 ```
 
 ### Introspect Token
@@ -62,4 +62,3 @@ curl -X POST http://localhost:8080/introspect -d 'token=ey...' | jq
 If you want to test token expiration, you can change the token ttl value in .env for the local server, and in dockerstart.sh for the Docker image or in values.yaml for Kubernetes cluster
 
 ---
-echo 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdWQiOiJhcGkiLCJleHAiOjE3NDM4NjEwNTAsImlzcyI6Im9hdXRoMi1zZXJ2ZXIiLCJzY29wZSI6InJlYWQ6cHJvZHVjdHMiLCJzdWIiOiJjbGllbnRfaWQifQ.KTtsvngCzqbfEBbm05QUQj4iyxlvwwAsgjt-IXs4CcV2HeS2zz4b2p_KMYol3iJfHvYk3yk93bDTlZITEhI9iceywmYcIY8Jj9OWvoNrS33ry1-d59GULVtd8Fn-asY9Kc0RFGKDiOqsedPgH5_by4nkIVylmHQzqwM4RyqWbU2hi5L3eXumtC_c0MOCcU2g-4nA3dpa4ktKQ8msaXWQ1hllLjJGYaZG1TdtyH2FLtFt5ehRl_VKJTm9L0n9tbxPpfa2xRq35f45srYnscbfp6xsMm2GQ4ELVGIawWAG5GzU3eWJY4y0eo3Muv7icDrOiYcmY0S62UHEKBZdv2gBTQ' | cut -d '.' -f1 | base64 -d

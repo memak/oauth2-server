@@ -25,5 +25,5 @@ volume:
 
 api:
   token: "/token"
-  jwks: "/jwks"
+  jwks: "/.well-known/jwks.json"
   introspect: "/introspect"
