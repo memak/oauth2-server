@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"net"
 	"net/http"
 	"sync"
 
@@ -45,7 +46,8 @@ func (rl *RateLimiter) GetLimiter(clientID string) *rate.Limiter {
 // RateLimitMiddleware applies rate limiting to HTTP requests
 func (rl *RateLimiter) RateLimitMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		clientID := r.RemoteAddr // Use the client's IP address as the identifier
+		host, _, _ := net.SplitHostPort(r.RemoteAddr)
+		clientID := host
 		limiter := rl.GetLimiter(clientID)
 
 		if !limiter.Allow() {
