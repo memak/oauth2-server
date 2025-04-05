@@ -41,6 +41,12 @@ spec:
               value: "{{ .Values.jwt.token_ttl }}"
             - name: SERVER_PORT
               value: "{{ .Values.server.port }}"
+            - name: API_TOKEN
+              value: "{{ .Values.api.token }}"
+            - name: API_JWKS
+              value: "{{ .Values.api.jwks }}"
+            - name: API_INTROSPECT
+              value: "{{ .Values.api.introspect }}"              
           volumeMounts:
             - name: key-volume
               mountPath: "{{ .Values.volume.mountPath }}"

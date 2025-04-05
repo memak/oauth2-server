@@ -23,6 +23,9 @@ docker run --rm --name "$CONTAINER_NAME" \
   -e PATHS_PUBLIC_KEY="$KEYS_DIR/public.pem" \
   -e SERVER_PORT=8080 \
   -e JWT_TOKEN_TTL=3600 \
+  -e API_TOKEN="/token" \
+  -e API_INTROSPECT="/introspect" \
+  -e API_JWKS=""/.well-known/jwks.json"" \
   "$IMAGE_NAME"
 
 echo "✅ The server is now running on at http://localhost:8080"
