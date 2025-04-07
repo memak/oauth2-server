@@ -17,12 +17,24 @@ func JWKSHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = key.Set(jwk.KeyIDKey, auth.GetKeyID())
-	if err != nil {
+	if err := key.Set(jwk.KeyIDKey, auth.GetKeyID()); err != nil {
 		log.Errorf("failed to set key ID: %v", err)
 		http.Error(w, "internal server error", http.StatusInternalServerError)
 		return
 	}
+
+	if err := key.Set(jwk.AlgorithmKey, "RS256"); err != nil {
+		log.Errorf("failed to set alg: %v", err)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
+	if err := key.Set(jwk.KeyUsageKey, "sig"); err != nil {
+		log.Errorf("failed to set use: %v", err)
+		http.Error(w, "internal server error", http.StatusInternalServerError)
+		return
+	}
+
 
 	set := jwk.NewSet()
 	set.AddKey(key)

@@ -1,0 +1,159 @@
+openapi: 3.0.3
+info:
+  title: Simple OAuth2 Server
+  version: 1.0.0
+  description: OAuth2 server implementing client_credentials flow with JWT, introspection, and JWKS
+
+servers:
+  - url: http://localhost:8080
+
+paths:
+  /token:
+    post:
+      summary: Issue an access token via client_credentials grant
+      description: >
+        Returns a JWT access token for valid client credentials using HTTP Basic Auth.
+        Optional `scope` can be passed in the form body.
+      security:
+        - basicAuth: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                grant_type:
+                  type: string
+                  enum: [client_credentials]
+                  example: client_credentials
+                scope:
+                  type: string
+                  description: Optional space-separated list of scopes
+                  example: write:orders
+              required:
+                - grant_type
+      responses:
+        '200':
+          description: Access token issued
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                  token_type:
+                    type: string
+                    example: bearer
+                  expires_in:
+                    type: integer
+                    example: 3600
+                  scope:
+                    type: string
+                    example: write:orders
+        '400':
+          description: >
+            Invalid request,
+            Invalid form data
+        '401':
+          description: >
+            Invalid credentials,
+            Invalid auth header
+        '500':
+          description: >
+            Token generation failed,
+            Failed to encode response
+
+  /introspect:
+    post:
+      summary: Introspect a token
+      description: >
+        Returns metadata of a token if valid. Otherwise returns {"active": false}.
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                token:
+                  type: string
+              required:
+                - token
+      responses:
+        '200':
+          description: Token introspection result
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - type: object
+                    properties:
+                      active:
+                        type: boolean
+                        example: true
+                      client_id:
+                        type: string
+                        example: client_id
+                      sub:
+                        type: string
+                        example: client_id
+                      exp:
+                        type: integer
+                        example: 1744016664
+                      token_type:
+                        type: string
+                        example: access_token
+                      scope:
+                        type: string
+                        example: write:orders
+                  - type: object
+                    properties:
+                      active:
+                        type: boolean
+                        example: false
+        '400':
+          description: Missing token
+
+  /.well-known/jwks.json:
+    get:
+      summary: Get the public signing keys (JWKS)
+      description: Returns the public keys used to verify JWTs.
+      responses:
+        '200':
+          description: JWKS response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  keys:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        kty:
+                          type: string
+                          example: RSA
+                        kid:
+                          type: string
+                          example: abc123
+                        use:
+                          type: string
+                          example: sig
+                        alg:
+                          type: string
+                          example: RS256
+                        n:
+                          type: string
+                        e:
+                          type: string
+        '500':
+          description: Internal server error
+
+components:
+  securitySchemes:
+    basicAuth:
+      type: http
+      scheme: basic
