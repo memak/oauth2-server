@@ -40,7 +40,7 @@ Creates a secret for the keys and starts the kubernetes cluster. If you use `kin
 ./scripts/helmstart.sh
 ```
 ## Use the APIs
-After starting the server you can use the following APIs
+After starting the server you can use the following APIs. Detailed description of APIs with example requests and reponses are described in api/openapi.yaml and can be viewed with OpenAPI/Swagger UI, e.g. plugin in Visual Studio Code
 
 ### Get Token
 Scope parameter is optional
