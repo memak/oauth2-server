@@ -18,6 +18,9 @@ import (
 var privateKey *rsa.PrivateKey
 var publicKey *rsa.PublicKey
 var keyID string
+var iss string;
+var aud string;
+var alg string;
 
 func init() {
 	privKeyData, err := os.ReadFile(viper.GetString("paths.private_key"))
@@ -37,6 +40,9 @@ func init() {
 		log.Fatalf("Failed to parse public key: %v", err)
 	}
 	keyID = computeKeyID(publicKey)
+	iss = "https://oauth2.com"
+	aud = "https://api.oauth2.com"
+	alg = "RS256"
 }
 
 func PublicKey() *rsa.PublicKey {
@@ -57,9 +63,9 @@ func GenerateJWT(clientID string, scopes []string) (string, error) {
 	ttl := viper.GetInt("jwt.token_ttl")
 
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
-		"iss":   "oauth2-server",
+		"iss":   iss,
 		"sub":   clientID,
-		"aud":   "api",
+		"aud":   aud,
 		"exp":   time.Now().Add(time.Duration(ttl) * time.Second).Unix(),
 		"scope": strings.Join(scopes, " "),
 	})
@@ -84,5 +90,27 @@ func ValidateJWT(tokenStr string) (*jwt.Token, error) {
 		log.Errorf("Failed to validate token: %v", err)
 		return nil, err
 	}
+
+	claims, ok := token.Claims.(jwt.MapClaims)
+	if !ok {
+		log.Errorf("Invalid token claims")
+		return nil, jwt.ErrTokenInvalidClaims
+	}
+
+	if token.Method.Alg() != alg {
+		log.Errorf("Invalid algorithm: expected %s, got %s", alg, token.Method.Alg())
+		return nil, jwt.ErrTokenUnverifiable
+	}
+
+	if claims["iss"] != iss {
+		log.Errorf("Invalid issuer: expected %s, got %s", iss, claims["iss"])
+		return nil, jwt.ErrTokenInvalidIssuer
+	}
+
+	if claims["aud"] != aud {
+		log.Errorf("Invalid audience: expected %s, got %s", aud, claims["aud"])
+		return nil, jwt.ErrTokenInvalidAudience
+	}
+
 	return token, nil
 }

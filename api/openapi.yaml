@@ -70,6 +70,8 @@ paths:
       summary: Introspect a token
       description: >
         Returns metadata of a token if valid. Otherwise returns {"active": false}.
+      security:
+      - basicAuth: []
       requestBody:
         required: true
         content:

@@ -55,7 +55,7 @@ curl http://localhost:8080/.well-known/jwks.json | jq
 
 ### Introspect Token
 ```sh
-curl -X POST http://localhost:8080/introspect -d 'token=ey...' | jq
+curl -u client_id:secret -X POST http://localhost:8080/introspect -d 'token=ey...' | jq
 ```
 
 ### Token expiration
